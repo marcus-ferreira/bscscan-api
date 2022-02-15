@@ -8,6 +8,6 @@ A CLI made in Python using Bscscan API to get some BSC chain network in the bloc
 - BEP-721 (NFT) transfers of an address
 
 ## How to use
-1. Get a Bscscan API key at https://bscscan.com/apis
+1. Get a Bscscan API key at https://bscscan.com/apis or use "YourApiKeyToken" as the API key to test it.
 2. Download the files
 3. Run 'bscscan.py'

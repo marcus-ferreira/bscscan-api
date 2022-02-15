@@ -4,7 +4,7 @@ A CLI made in Python using Bscscan API to get some BSC chain network in the bloc
 - Balance of one or more addresses
 - Normal transactions of an address
 - Internal transactions of an address
-- BEP-20 transfers of an address
+- BEP-20 (Token) transfers of an address
 - BEP-721 (NFT) transfers of an address
 
 ## How to use

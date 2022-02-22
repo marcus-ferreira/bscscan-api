@@ -1,4 +1,3 @@
-from datetime import datetime
 import json
 import os
 import pandas as pd
@@ -6,92 +5,65 @@ import requests
 
 
 # Variables
-dt = datetime.now().strftime("%y%m%d-%H%M%S")
+api_key = input(
+    f"Enter your API key (Get one at https://bscscan.com/apis): ")
 endpoint = "https://api.bscscan.com/api"
 
 
 def main():
-    print("Choose an option:")
-    print("(1) Balance of one or more addresses")
-    print("(2) Normal transactions of an address")
-    print("(3) Internal transactions of an address")
-    print("(4) BEP-20 transfers of an address")
-    print("(5) BEP-721 (NFT) transfers of an address")
-    choose = input()
+    choose = input(
+        f"Choose an option:\n"
+        "(1) Balance of one or more addresses\n"
+        "(2) Normal transactions of an address\n"
+        "(3) Internal transactions of an address\n"
+        "(4) BEP-20 transfers of an address\n"
+        "(5) BEP-721 (NFT) transfers of an address\n")
 
     addresses = list(
-        input("Enter the bsc addresses separated by comma: ").strip().split(","))
+        input(f"Enter the bsc address(es) separated by comma: ").strip().split(","))
 
-    if choose == "1":
-        get_balance_by_address(addresses)
-    elif choose == "2":
-        get_normal_transactions_by_address(addresses[0])
-    elif choose == "3":
-        get_internal_transactions_by_address(addresses[0])
-    elif choose == "4":
-        get_bep20_token_transfers(addresses[0])
-    elif choose == "5":
-        get_bep721_token_transfers(addresses[0])
-    else:
-        print("Choose a valid option.")
-        main()
-
-    os.system("pause")
+    match choose:
+        case "1":
+            get_balance_by_address(addresses)
+        case "2":
+            get_transactions_by_address("normal", addresses[0])
+        case "3":
+            get_transactions_by_address("internal", addresses[0])
+        case "4":
+            get_transactions_by_address("BEP-20", addresses[0])
+        case "5":
+            get_transactions_by_address("BEP-721", addresses[0])
+        case _:
+            main()
 
 
 # Get the balance in BNB of a list of addresses and save to a csv file
 def get_balance_by_address(addresses):
-    api_key = input(
-        "Enter your API key (Get one at https://bscscan.com/apis): ")
     params = {"module": "account", "action": "balancemulti",
               "address": addresses, "apikey": api_key}
 
     response = requests.get(endpoint, params=params).json()
-    create_file(response, f"bnb_balance-{dt}.csv")
+    create_file(response, f"bnb_balance.csv")
+    main()
 
 
-# Get a list of normal transactions by address and save to a csv file
-def get_normal_transactions_by_address(addresses):
-    api_key = input(
-        "Enter your API key (Get one at https://bscscan.com/apis): ")
-    params = {"module": "account", "action": "txlist", "address": addresses,
-              "startblock": 0, "endblock": 99999999, "sort": "asc", "apikey": api_key}
+# Get a list of transactions by address and save to a csv file
+def get_transactions_by_address(type, addresses):
+    params = {"module": "account", "address": addresses, "startblock": 0,
+              "endblock": 99999999, "sort": "asc", "apikey": api_key}
 
-    response = requests.get(endpoint, params=params).json()
-    create_file(response, f"normal_transactions-{dt}.csv")
-
-
-# Get a list of internal transactions by address and save to a csv file
-def get_internal_transactions_by_address(addresses):
-    api_key = input(
-        "Enter your API key (Get one at https://bscscan.com/apis): ")
-    params = {"module": "account", "action": "txlistinternal", "address": addresses,
-              "startblock": 0, "endblock": 99999999, "sort": "asc", "apikey": api_key}
+    if type == "normal":
+        params['action'] = "txlist"
+    elif type == "internal":
+        params['action'] = "txlistinternal"
+    elif type == "BEP-20":
+        params['action'] = "tokentx"
+    elif type == "BEP-721":
+        params['action'] = "tokennfttx"
 
     response = requests.get(endpoint, params=params).json()
-    create_file(response, f"internal_transactions-{dt}.csv")
-
-
-# Get a list of BEP-20 tokens transferred by an address and save to a csv file
-def get_bep20_token_transfers(addresses):
-    api_key = input(
-        "Enter your API key (Get one at https://bscscan.com/apis): ")
-    params = {"module": "account", "action": "tokentx", "address": addresses,
-              "startblock": 0, "endblock": 99999999, "sort": "asc", "apikey": api_key}
-
-    response = requests.get(endpoint, params=params).json()
-    create_file(response, f"bep20_token_transfers-{dt}.csv")
-
-
-# Get a list of BEP-721 (NFT) tokens transferred by an address and save to a csv file
-def get_bep721_token_transfers(addresses):
-    api_key = input(
-        "Enter your API key (Get one at https://bscscan.com/apis): ")
-    params = {"module": "account", "action": "tokennfttx", "address": addresses,
-              "startblock": 0, "endblock": 99999999, "sort": "asc", "apikey": api_key}
-
-    response = requests.get(endpoint, params=params).json()
-    create_file(response, f"bep721_token_transfers-{dt}.csv")
+    create_file(response, f"{type}_transactions.csv")
+    main()
 
 
 # Make a dataframe and create the diretory and csv file
@@ -107,7 +79,7 @@ def create_file(response, filename):
         pass
     finally:
         df.to_csv(f"{dir}/{filename}", index=False)
-        print(f"File succesfully created in User folder.")
+        print(f"File succesfully created.")
 
 
 if __name__ == "__main__":
